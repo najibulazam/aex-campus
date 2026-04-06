@@ -68,6 +68,14 @@ const EVENT_TYPES: ScheduleEventType[] = [
 const EVENT_STATUSES: ScheduleEventStatus[] = ["planned", "completed", "cancelled"];
 const RANGE_FILTERS: Array<"all" | "today" | "week"> = ["all", "today", "week"];
 
+function formatScheduleOptionLabel(value: string): string {
+  if (value === "cancelled") {
+    return "Canceled";
+  }
+
+  return value.charAt(0).toUpperCase() + value.slice(1);
+}
+
 function toLocalDateTimeInput(isoString: string): string {
   const date = new Date(isoString);
   const offsetMs = date.getTimezoneOffset() * 60 * 1000;
@@ -322,7 +330,7 @@ export default function SchedulePage() {
                   statusFilter === filter ? "neo-btn-primary" : "neo-btn-ghost"
                 }`}
               >
-                {filter}
+                {formatScheduleOptionLabel(filter)}
                 <span
                   className={`inline-flex items-center justify-center min-w-5 h-5 rounded-full text-[11px] font-semibold ${
                     statusFilter === filter
@@ -346,7 +354,7 @@ export default function SchedulePage() {
                   rangeFilter === filter ? "neo-btn-primary" : "neo-btn-ghost"
                 }`}
               >
-                {filter}
+                {formatScheduleOptionLabel(filter)}
               </button>
             ))}
           </div>
@@ -431,7 +439,7 @@ export default function SchedulePage() {
             >
               {EVENT_TYPES.map((eventType) => (
                 <option key={eventType} value={eventType}>
-                  {eventType}
+                  {formatScheduleOptionLabel(eventType)}
                 </option>
               ))}
             </select>
@@ -559,7 +567,7 @@ export default function SchedulePage() {
               >
                 {EVENT_TYPES.map((eventType) => (
                   <option key={eventType} value={eventType}>
-                    {eventType}
+                    {formatScheduleOptionLabel(eventType)}
                   </option>
                 ))}
               </select>
@@ -577,7 +585,7 @@ export default function SchedulePage() {
               >
                 {EVENT_STATUSES.map((status) => (
                   <option key={status} value={status}>
-                    {status}
+                    {formatScheduleOptionLabel(status)}
                   </option>
                 ))}
               </select>
@@ -753,7 +761,7 @@ export default function SchedulePage() {
                   {formatDisplayDate(event.startAt)} - {formatDisplayDate(event.endAt)}
                 </p>
                 <p className="text-xs neo-text-muted">
-                  {event.type}
+                  {formatScheduleOptionLabel(event.type)}
                   {event.location ? ` · ${event.location}` : ""}
                   {event.courseId ? ` · ${courseLabelById.get(event.courseId) ?? event.courseId}` : ""}
                   {event.reminderMinutes !== undefined ? ` · ${event.reminderMinutes}m reminder` : ""}
@@ -791,7 +799,7 @@ export default function SchedulePage() {
                 >
                   {EVENT_STATUSES.map((status) => (
                     <option key={status} value={status}>
-                      {status}
+                      {formatScheduleOptionLabel(status)}
                     </option>
                   ))}
                 </select>

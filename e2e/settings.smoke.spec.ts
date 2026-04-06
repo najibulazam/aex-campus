@@ -21,10 +21,10 @@ test.describe("settings smoke", () => {
     await login(page);
   });
 
-  test("falls back to preferences tab", async ({ page }) => {
+  test("falls back to profile tab", async ({ page }) => {
     await page.goto("/settings");
-    await expect(page).toHaveURL(/tab=preferences/);
-    await expect(page.getByRole("button", { name: "Preferences" })).toBeVisible();
+    await expect(page).toHaveURL(/tab=profile/);
+    await expect(page.getByRole("button", { name: "Profile" })).toBeVisible();
   });
 
   test("warns on unsaved tab switch and blocks navigation when dismissed", async ({ page }) => {

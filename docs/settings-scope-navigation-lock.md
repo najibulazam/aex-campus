@@ -23,7 +23,7 @@
   - Settings -> `/settings?tab=preferences`
 - Settings page tab contract:
   - valid tabs: `profile`, `preferences`, `notifications`
-  - invalid or missing tab falls back to `preferences`
+  - invalid or missing tab falls back to `profile`
 
 ## Current Implementation Status
 

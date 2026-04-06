@@ -151,7 +151,7 @@ export default function SettingsPage() {
     }
 
     const params = new URLSearchParams(searchParams.toString());
-    params.set("tab", "preferences");
+    params.set("tab", "profile");
     router.replace(`${pathname}?${params.toString()}`);
   }, [pathname, requestedTab, router, searchParams]);
 

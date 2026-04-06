@@ -21,9 +21,9 @@ describe("settings tab helpers", () => {
     expect(isSettingsTab(null)).toBe(false);
   });
 
-  it("resolves to preferences by default when tab is invalid or missing", () => {
-    expect(resolveSettingsTab(null)).toBe("preferences");
-    expect(resolveSettingsTab("invalid")).toBe("preferences");
+  it("resolves to profile by default when tab is invalid or missing", () => {
+    expect(resolveSettingsTab(null)).toBe("profile");
+    expect(resolveSettingsTab("invalid")).toBe("profile");
   });
 
   it("returns valid tabs unchanged", () => {

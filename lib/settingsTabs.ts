@@ -8,7 +8,7 @@ export function isSettingsTab(value: string | null): value is SettingsTab {
 
 export function resolveSettingsTab(
   value: string | null,
-  fallback: SettingsTab = "preferences"
+  fallback: SettingsTab = "profile"
 ): SettingsTab {
   return isSettingsTab(value) ? value : fallback;
 }

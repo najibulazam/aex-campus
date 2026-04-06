@@ -17,6 +17,21 @@ function getMutationErrorMessage(error: unknown, fallback: string): string {
   return getFirebaseErrorMessage(error, fallback);
 }
 
+function shouldRetryProfileLoad(error: unknown): boolean {
+  const code =
+    typeof error === "object" && error !== null && "code" in error
+      ? String((error as { code?: unknown }).code)
+      : "";
+
+  return code === "permission-denied" || code === "unauthenticated";
+}
+
+function wait(ms: number): Promise<void> {
+  return new Promise((resolve) => {
+    window.setTimeout(resolve, ms);
+  });
+}
+
 export function useProfile() {
   const { user } = useAuth();
 
@@ -35,9 +50,23 @@ export function useProfile() {
       setProfileLoading(true);
       const fallbackName = user.displayName?.trim() || user.email?.split("@")[0] || "Student";
       const fallbackTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
-      const nextProfile = await getOrCreateUserProfile(user.uid, fallbackName, fallbackTimezone);
-      setProfile(nextProfile);
-      setProfileError(null);
+      try {
+        const nextProfile = await getOrCreateUserProfile(user.uid, fallbackName, fallbackTimezone);
+        setProfile(nextProfile);
+        setProfileError(null);
+      } catch (firstError) {
+        if (!shouldRetryProfileLoad(firstError)) {
+          throw firstError;
+        }
+
+        // Newly-created sessions can briefly fail Firestore checks until auth state/token settles.
+        await user.getIdToken(true);
+        await wait(250);
+
+        const nextProfile = await getOrCreateUserProfile(user.uid, fallbackName, fallbackTimezone);
+        setProfile(nextProfile);
+        setProfileError(null);
+      }
     } catch (error) {
       trackSettingsFailure("profile", "load", error);
       console.error("[useProfile] Failed to load profile:", error);
