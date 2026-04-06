@@ -159,6 +159,14 @@ body {
   color: var(--neo-text-muted);
 }
 
+.neo-input.neo-auth-input {
+  padding-left: 40px;
+}
+
+.neo-input.neo-auth-input::placeholder {
+  color: #9ca3af;
+}
+
 .neo-input:focus,
 .neo-select:focus,
 .neo-search:focus {

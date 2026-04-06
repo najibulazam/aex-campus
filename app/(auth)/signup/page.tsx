@@ -73,12 +73,12 @@ export default function SignupPage() {
             <div>
               <label htmlFor="signup-email" className="block text-sm font-medium neo-text-secondary mb-1.5">Email</label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 neo-text-muted" />
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6b7280] pointer-events-none" />
                 <input
                   id="signup-email"
                   type="email"
-                  placeholder="you@university.edu"
-                  className="neo-input pl-10"
+                  placeholder="example@mail.com"
+                  className="neo-input neo-auth-input"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
@@ -90,12 +90,12 @@ export default function SignupPage() {
             <div>
               <label htmlFor="signup-password" className="block text-sm font-medium neo-text-secondary mb-1.5">Password</label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 neo-text-muted" />
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6b7280] pointer-events-none" />
                 <input
                   id="signup-password"
                   type="password"
                   placeholder="Min. 6 characters"
-                  className="neo-input pl-10"
+                  className="neo-input neo-auth-input"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
@@ -108,12 +108,12 @@ export default function SignupPage() {
             <div>
               <label htmlFor="signup-confirm" className="block text-sm font-medium neo-text-secondary mb-1.5">Confirm Password</label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 neo-text-muted" />
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6b7280] pointer-events-none" />
                 <input
                   id="signup-confirm"
                   type="password"
                   placeholder="Re-enter password"
-                  className="neo-input pl-10"
+                  className="neo-input neo-auth-input"
                   value={confirm}
                   onChange={(e) => setConfirm(e.target.value)}
                   required
