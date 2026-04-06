@@ -14,8 +14,10 @@ type DraftEvent = {
   title: string;
   type: ScheduleEventType;
   status: ScheduleEventStatus;
-  startAt: string;
-  endAt: string;
+  startDate: string;
+  startTime: string;
+  endDate: string;
+  endTime: string;
   location: string;
   courseId: string;
   notes: string;
@@ -82,6 +84,32 @@ function toLocalDateTimeInput(isoString: string): string {
   return new Date(date.getTime() - offsetMs).toISOString().slice(0, 16);
 }
 
+function splitDateAndTime(value: string): { date: string; time: string } {
+  if (!value) {
+    return { date: "", time: "" };
+  }
+
+  const directMatch = value.match(/^(\d{4}-\d{2}-\d{2})T(\d{2}:\d{2})/);
+  if (directMatch) {
+    return {
+      date: directMatch[1],
+      time: directMatch[2],
+    };
+  }
+
+  const normalized = toLocalDateTimeInput(value);
+  const normalizedMatch = normalized.match(/^(\d{4}-\d{2}-\d{2})T(\d{2}:\d{2})/);
+
+  return {
+    date: normalizedMatch?.[1] ?? "",
+    time: normalizedMatch?.[2] ?? "",
+  };
+}
+
+function combineDateAndTime(date: string, time: string): string {
+  return `${date}T${time}`;
+}
+
 function formatDisplayDate(isoString: string): string {
   const date = new Date(isoString);
   return date.toLocaleString([], {
@@ -93,12 +121,17 @@ function formatDisplayDate(isoString: string): string {
 }
 
 function toDraft(event: ScheduleEvent): DraftEvent {
+  const start = splitDateAndTime(event.startAt);
+  const end = splitDateAndTime(event.endAt);
+
   return {
     title: event.title,
     type: event.type,
     status: event.status,
-    startAt: toLocalDateTimeInput(event.startAt),
-    endAt: toLocalDateTimeInput(event.endAt),
+    startDate: start.date,
+    startTime: start.time,
+    endDate: end.date,
+    endTime: end.time,
     location: event.location ?? "",
     courseId: event.courseId ?? "",
     notes: event.notes ?? "",
@@ -127,8 +160,10 @@ export default function SchedulePage() {
 
   const [title, setTitle] = useState("");
   const [type, setType] = useState<ScheduleEventType>("class");
-  const [startAt, setStartAt] = useState("");
-  const [endAt, setEndAt] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [startTime, setStartTime] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [endTime, setEndTime] = useState("");
   const [location, setLocation] = useState("");
   const [courseId, setCourseId] = useState("");
   const [notes, setNotes] = useState("");
@@ -370,7 +405,15 @@ export default function SchedulePage() {
               return;
             }
 
-            const dateRangeError = validateDateRange(startAt, endAt);
+            if (!startDate || !startTime || !endDate || !endTime) {
+              setAddFormError("Start and end date/time are required.");
+              return;
+            }
+
+            const nextStartAt = combineDateAndTime(startDate, startTime);
+            const nextEndAt = combineDateAndTime(endDate, endTime);
+
+            const dateRangeError = validateDateRange(nextStartAt, nextEndAt);
             if (dateRangeError) {
               setAddFormError(dateRangeError);
               return;
@@ -388,8 +431,8 @@ export default function SchedulePage() {
               title,
               type,
               status: "planned",
-              startAt: new Date(startAt).toISOString(),
-              endAt: new Date(endAt).toISOString(),
+              startAt: new Date(nextStartAt).toISOString(),
+              endAt: new Date(nextEndAt).toISOString(),
               location,
               courseId,
               notes,
@@ -404,8 +447,10 @@ export default function SchedulePage() {
 
             setTitle("");
             setType("class");
-            setStartAt("");
-            setEndAt("");
+            setStartDate("");
+            setStartTime("");
+            setEndDate("");
+            setEndTime("");
             setLocation("");
             setCourseId("");
             setNotes("");
@@ -445,24 +490,56 @@ export default function SchedulePage() {
             </select>
           </div>
           <div className="md:col-span-2">
-            <label className="text-xs font-medium neo-text-muted block mb-1">Start *</label>
+            <label className="text-xs font-medium neo-text-muted block mb-1">Start Date *</label>
             <input
-              type="datetime-local"
+              type="date"
               required
-              value={startAt}
-              onChange={(event) => setStartAt(event.target.value)}
+              value={startDate}
+              onChange={(event) => setStartDate(event.target.value)}
               className="neo-input neo-picker-date h-11.5"
             />
+            <p className="text-[11px] neo-text-muted mt-1">
+              {startDate ? "Date selected" : "No date selected"}
+            </p>
           </div>
           <div className="md:col-span-2">
-            <label className="text-xs font-medium neo-text-muted block mb-1">End *</label>
+            <label className="text-xs font-medium neo-text-muted block mb-1">Start Time *</label>
             <input
-              type="datetime-local"
+              type="time"
               required
-              value={endAt}
-              onChange={(event) => setEndAt(event.target.value)}
+              value={startTime}
+              onChange={(event) => setStartTime(event.target.value)}
+              className="neo-input neo-picker-time h-11.5"
+            />
+            <p className="text-[11px] neo-text-muted mt-1">
+              {startTime ? "Time selected" : "No time selected"}
+            </p>
+          </div>
+          <div className="md:col-span-2">
+            <label className="text-xs font-medium neo-text-muted block mb-1">End Date *</label>
+            <input
+              type="date"
+              required
+              value={endDate}
+              onChange={(event) => setEndDate(event.target.value)}
               className="neo-input neo-picker-date h-11.5"
             />
+            <p className="text-[11px] neo-text-muted mt-1">
+              {endDate ? "Date selected" : "No date selected"}
+            </p>
+          </div>
+          <div className="md:col-span-2">
+            <label className="text-xs font-medium neo-text-muted block mb-1">End Time *</label>
+            <input
+              type="time"
+              required
+              value={endTime}
+              onChange={(event) => setEndTime(event.target.value)}
+              className="neo-input neo-picker-time h-11.5"
+            />
+            <p className="text-[11px] neo-text-muted mt-1">
+              {endTime ? "Time selected" : "No time selected"}
+            </p>
           </div>
           <div className="md:col-span-3">
             <label className="text-xs font-medium neo-text-muted block mb-1">Location</label>
@@ -512,7 +589,7 @@ export default function SchedulePage() {
           <div className="md:col-span-2 flex md:justify-end">
             <button
               type="submit"
-              disabled={submitting || !title.trim() || !startAt || !endAt}
+              disabled={submitting || !title.trim() || !startDate || !startTime || !endDate || !endTime}
               className="neo-btn neo-btn-primary h-11 px-5 w-full md:w-auto"
             >
               {submitting ? "Adding..." : "Add Event"}
@@ -591,30 +668,68 @@ export default function SchedulePage() {
               </select>
             </div>
             <div className="md:col-span-2">
-              <label className="text-xs font-medium neo-text-muted block mb-1">Start *</label>
+              <label className="text-xs font-medium neo-text-muted block mb-1">Start Date *</label>
               <input
-                type="datetime-local"
-                value={editDraft.startAt}
+                type="date"
+                value={editDraft.startDate}
                 onChange={(event) =>
                   setEditDraft((current) =>
-                    current ? { ...current, startAt: event.target.value } : current
+                    current ? { ...current, startDate: event.target.value } : current
                   )
                 }
                 className="neo-input neo-picker-date h-11.5"
               />
+              <p className="text-[11px] neo-text-muted mt-1">
+                {editDraft.startDate ? "Date selected" : "No date selected"}
+              </p>
             </div>
             <div className="md:col-span-2">
-              <label className="text-xs font-medium neo-text-muted block mb-1">End *</label>
+              <label className="text-xs font-medium neo-text-muted block mb-1">Start Time *</label>
               <input
-                type="datetime-local"
-                value={editDraft.endAt}
+                type="time"
+                value={editDraft.startTime}
                 onChange={(event) =>
                   setEditDraft((current) =>
-                    current ? { ...current, endAt: event.target.value } : current
+                    current ? { ...current, startTime: event.target.value } : current
+                  )
+                }
+                className="neo-input neo-picker-time h-11.5"
+              />
+              <p className="text-[11px] neo-text-muted mt-1">
+                {editDraft.startTime ? "Time selected" : "No time selected"}
+              </p>
+            </div>
+            <div className="md:col-span-2">
+              <label className="text-xs font-medium neo-text-muted block mb-1">End Date *</label>
+              <input
+                type="date"
+                value={editDraft.endDate}
+                onChange={(event) =>
+                  setEditDraft((current) =>
+                    current ? { ...current, endDate: event.target.value } : current
                   )
                 }
                 className="neo-input neo-picker-date h-11.5"
               />
+              <p className="text-[11px] neo-text-muted mt-1">
+                {editDraft.endDate ? "Date selected" : "No date selected"}
+              </p>
+            </div>
+            <div className="md:col-span-2">
+              <label className="text-xs font-medium neo-text-muted block mb-1">End Time *</label>
+              <input
+                type="time"
+                value={editDraft.endTime}
+                onChange={(event) =>
+                  setEditDraft((current) =>
+                    current ? { ...current, endTime: event.target.value } : current
+                  )
+                }
+                className="neo-input neo-picker-time h-11.5"
+              />
+              <p className="text-[11px] neo-text-muted mt-1">
+                {editDraft.endTime ? "Time selected" : "No time selected"}
+              </p>
             </div>
             <div className="md:col-span-3">
               <label className="text-xs font-medium neo-text-muted block mb-1">Location</label>
@@ -681,9 +796,12 @@ export default function SchedulePage() {
                 disabled={
                   savingEdit
                   || !editDraft.title.trim()
-                  || !editDraft.startAt
-                  || !editDraft.endAt
-                  || new Date(editDraft.endAt).getTime() < new Date(editDraft.startAt).getTime()
+                  || !editDraft.startDate
+                  || !editDraft.startTime
+                  || !editDraft.endDate
+                  || !editDraft.endTime
+                  || new Date(combineDateAndTime(editDraft.endDate, editDraft.endTime)).getTime()
+                    < new Date(combineDateAndTime(editDraft.startDate, editDraft.startTime)).getTime()
                 }
                 className="neo-btn neo-btn-primary h-11 px-5"
                 onClick={async () => {
@@ -694,7 +812,15 @@ export default function SchedulePage() {
                     return;
                   }
 
-                  const dateRangeError = validateDateRange(editDraft.startAt, editDraft.endAt);
+                  if (!editDraft.startDate || !editDraft.startTime || !editDraft.endDate || !editDraft.endTime) {
+                    setEditFormError("Start and end date/time are required.");
+                    return;
+                  }
+
+                  const nextStartAt = combineDateAndTime(editDraft.startDate, editDraft.startTime);
+                  const nextEndAt = combineDateAndTime(editDraft.endDate, editDraft.endTime);
+
+                  const dateRangeError = validateDateRange(nextStartAt, nextEndAt);
                   if (dateRangeError) {
                     setEditFormError(dateRangeError);
                     return;
@@ -712,8 +838,8 @@ export default function SchedulePage() {
                     title: editDraft.title,
                     type: editDraft.type,
                     status: editDraft.status,
-                    startAt: new Date(editDraft.startAt).toISOString(),
-                    endAt: new Date(editDraft.endAt).toISOString(),
+                    startAt: new Date(nextStartAt).toISOString(),
+                    endAt: new Date(nextEndAt).toISOString(),
                     location: editDraft.location,
                     courseId: editDraft.courseId,
                     notes: editDraft.notes,

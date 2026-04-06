@@ -76,16 +76,24 @@ export default function TaskInput({ onAddTask, layoutMode = "default" }: TaskInp
               aria-label="Due date"
               required
             />
+            <p className="text-[11px] neo-text-muted mt-1">
+              {dueDate ? "Date selected" : "No date selected"}
+            </p>
             <span className="neo-required-mark" aria-hidden="true">*</span>
           </div>
 
-          <input
-            type="time"
-            className="neo-input neo-picker-time h-11.5 w-full min-w-0"
-            value={taskTime}
-            onChange={(e) => setTaskTime(e.target.value)}
-            aria-label="Due time"
-          />
+          <div>
+            <input
+              type="time"
+              className="neo-input neo-picker-time h-11.5 w-full min-w-0"
+              value={taskTime}
+              onChange={(e) => setTaskTime(e.target.value)}
+              aria-label="Due time"
+            />
+            <p className="text-[11px] neo-text-muted mt-1">
+              {taskTime ? "Time selected" : "No time selected"}
+            </p>
+          </div>
 
           <button
             type="submit"
@@ -125,18 +133,26 @@ export default function TaskInput({ onAddTask, layoutMode = "default" }: TaskInp
                 aria-label="Due date"
                 required
               />
+              <p className="text-[11px] neo-text-muted mt-1">
+                {dueDate ? "Date selected" : "No date selected"}
+              </p>
               <span className="neo-required-mark" aria-hidden="true">*</span>
             </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <input
-              type="time"
-              className="neo-input neo-picker-time h-11.5 w-full"
-              value={taskTime}
-              onChange={(e) => setTaskTime(e.target.value)}
-              aria-label="Due time"
-            />
+            <div>
+              <input
+                type="time"
+                className="neo-input neo-picker-time h-11.5 w-full"
+                value={taskTime}
+                onChange={(e) => setTaskTime(e.target.value)}
+                aria-label="Due time"
+              />
+              <p className="text-[11px] neo-text-muted mt-1">
+                {taskTime ? "Time selected" : "No time selected"}
+              </p>
+            </div>
 
             <button
               type="submit"
