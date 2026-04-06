@@ -68,7 +68,7 @@ export default function TaskItem({ task, onToggle, onDelete }: TaskItemProps) {
           onChange={() => onToggle(task.id)}
         />
         <div className="flex-1 min-w-0 flex flex-col justify-center">
-          <p className={`font-semibold text-sm sm:text-base wrap-break-word transition-all ${task.completed ? "line-through neo-text-muted" : "text-(--neo-text-primary)"}`}>
+          <p className={`font-semibold text-sm sm:text-base break-words transition-all ${task.completed ? "line-through neo-text-muted" : "text-(--neo-text-primary)"}`}>
             {task.title}
           </p>
           {(task.priority || task.dueDate || task.time) && (

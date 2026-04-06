@@ -71,6 +71,23 @@ function normalizeOptionalString(value: unknown, maxLength: number): string | un
   return normalized;
 }
 
+function normalizeOptionalHttpUrl(value: unknown, maxLength: number): string | undefined {
+  const normalized = normalizeTrimmedString(value);
+  if (!normalized) return undefined;
+  if (!isNonEmptyString(normalized, maxLength)) return undefined;
+
+  try {
+    const parsed = new URL(normalized);
+    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+      return undefined;
+    }
+
+    return parsed.toString();
+  } catch {
+    return undefined;
+  }
+}
+
 function normalizeMemberIds(memberIds: unknown, ownerId: string): string[] {
   const incoming = Array.isArray(memberIds) ? memberIds : [];
   const normalized = incoming
@@ -115,7 +132,7 @@ function parseStudyGroupDocument(
     subject,
     status: data.status,
     memberIds: normalizeMemberIds(data.memberIds, ownerId),
-    meetingLink: normalizeOptionalString(data.meetingLink, MAX_MEETING_LINK_LENGTH),
+    meetingLink: normalizeOptionalHttpUrl(data.meetingLink, MAX_MEETING_LINK_LENGTH),
     cadence: normalizeOptionalString(data.cadence, MAX_CADENCE_LENGTH),
     nextMeetingAt:
       typeof data.nextMeetingAt === "string" && isIsoDateTime(data.nextMeetingAt)
@@ -244,8 +261,16 @@ export async function addStudyGroup(input: StudyGroupInput): Promise<void> {
     updatedAt: serverTimestamp(),
   };
 
-  const meetingLink = normalizeOptionalString(input.meetingLink, MAX_MEETING_LINK_LENGTH);
-  if (input.meetingLink !== undefined) payload.meetingLink = meetingLink ?? null;
+  if (input.meetingLink !== undefined) {
+    const normalizedInput = normalizeTrimmedString(input.meetingLink);
+    const meetingLink = normalizeOptionalHttpUrl(input.meetingLink, MAX_MEETING_LINK_LENGTH);
+
+    if (normalizedInput && !meetingLink) {
+      throw new Error("Meeting link must be a valid http/https URL");
+    }
+
+    payload.meetingLink = meetingLink ?? null;
+  }
 
   const cadence = normalizeOptionalString(input.cadence, MAX_CADENCE_LENGTH);
   if (input.cadence !== undefined) payload.cadence = cadence ?? null;
@@ -317,8 +342,17 @@ export async function updateStudyGroup(
     }
 
     if (updates.meetingLink !== undefined) {
-      payload.meetingLink =
-        normalizeOptionalString(updates.meetingLink, MAX_MEETING_LINK_LENGTH) ?? null;
+      const normalizedInput = normalizeTrimmedString(updates.meetingLink);
+      const meetingLink = normalizeOptionalHttpUrl(
+        updates.meetingLink,
+        MAX_MEETING_LINK_LENGTH
+      );
+
+      if (normalizedInput && !meetingLink) {
+        throw new Error("Meeting link must be a valid http/https URL");
+      }
+
+      payload.meetingLink = meetingLink ?? null;
     }
 
     if (updates.cadence !== undefined) {

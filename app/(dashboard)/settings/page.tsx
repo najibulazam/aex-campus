@@ -153,7 +153,7 @@ export default function SettingsPage() {
   const [notificationDraft, setNotificationDraft] = useState<UserPreferencesInput>({});
 
   const requestedTab = searchParams.get("tab");
-  const activeTab: SettingsTab = isSettingsTab(requestedTab) ? requestedTab : "profile";
+  const activeTab: SettingsTab = isSettingsTab(requestedTab) ? requestedTab : "preferences";
 
   useEffect(() => {
     if (isSettingsTab(requestedTab)) {
@@ -161,7 +161,7 @@ export default function SettingsPage() {
     }
 
     const params = new URLSearchParams(searchParams.toString());
-    params.set("tab", "profile");
+    params.set("tab", "preferences");
     router.replace(`${pathname}?${params.toString()}`);
   }, [pathname, requestedTab, router, searchParams]);
 

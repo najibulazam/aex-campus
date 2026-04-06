@@ -50,7 +50,7 @@ function normalizeAvatarUrl(raw: unknown): string | undefined {
 
   try {
     const url = new URL(value);
-    if (!url.protocol.startsWith("http")) return undefined;
+    if (url.protocol !== "http:" && url.protocol !== "https:") return undefined;
     return url.toString();
   } catch {
     return undefined;

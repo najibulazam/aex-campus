@@ -30,8 +30,11 @@ function validateMeetingLink(meetingLink: string): string | null {
   if (!meetingLink.trim()) return null;
 
   try {
-    // URL constructor provides robust basic URL validation.
-    new URL(meetingLink);
+    // URL constructor provides robust URL validation.
+    const parsed = new URL(meetingLink);
+    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+      return "Meeting link must use http or https.";
+    }
     return null;
   } catch {
     return "Meeting link must be a valid URL.";
