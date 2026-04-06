@@ -208,6 +208,7 @@ firebase deploy --only firestore
 - docs/settings-scope-navigation-lock.md
 - docs/settings-verification-checklist.md
 - docs/settings-release-hardening.md
+- docs/vercel-deployment-guide.md
 
 ## Notes
 
