@@ -1,0 +1,443 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isIsoDate(value) {
+      return value is string
+        && value.matches('^\\d{4}-\\d{2}-\\d{2}$');
+    }
+
+    function isIsoDateTime(value) {
+      return value is string
+        && value.matches('^\\d{4}-\\d{2}-\\d{2}T([01]\\d|2[0-3]):[0-5]\\d(:[0-5]\\d(\\.\\d{3})?)?Z$');
+    }
+
+    function isTime24h(value) {
+      return value is string
+        && value.matches('^([01]\\d|2[0-3]):([0-5]\\d)$');
+    }
+
+    function isOptionalString(data, key, maxLength) {
+      return !data.keys().hasAny([key])
+        || data[key] == null
+        || (data[key] is string
+            && data[key].size() > 0
+            && data[key].size() <= maxLength);
+    }
+
+    function hasOnlyAllowedTaskFields(data) {
+      return data.keys().hasOnly([
+        'userId',
+        'title',
+        'completed',
+        'priority',
+        'dueDate',
+        'time',
+        'createdAt',
+      ]);
+    }
+
+    function hasRequiredTaskFields(data) {
+      return data.keys().hasAll(['userId', 'title', 'completed', 'createdAt']);
+    }
+
+    function hasValidTaskTitle(data) {
+      return data.title is string
+        && data.title.size() > 0
+        && data.title.size() <= 200;
+    }
+
+    function hasValidTaskPriority(data) {
+      return !data.keys().hasAny(['priority'])
+        || data.priority in ['low', 'medium', 'high'];
+    }
+
+    function hasValidTaskDueDate(data) {
+      return !data.keys().hasAny(['dueDate'])
+        || isIsoDate(data.dueDate);
+    }
+
+    function hasValidTaskTime(data) {
+      return !data.keys().hasAny(['time'])
+        || data.time == null
+        || isTime24h(data.time);
+    }
+
+    function hasValidTaskData(data) {
+      return hasOnlyAllowedTaskFields(data)
+        && hasRequiredTaskFields(data)
+        && data.completed is bool
+        && data.createdAt is timestamp
+        && hasValidTaskTitle(data)
+        && hasValidTaskPriority(data)
+        && hasValidTaskDueDate(data)
+        && hasValidTaskTime(data);
+    }
+
+    function isTaskOwner() {
+      return isSignedIn() && resource.data.userId == request.auth.uid;
+    }
+
+    function hasOnlyAllowedCourseFields(data) {
+      return data.keys().hasOnly([
+        'userId',
+        'name',
+        'status',
+        'code',
+        'credits',
+        'instructor',
+        'semester',
+        'color',
+        'createdAt',
+        'updatedAt',
+      ]);
+    }
+
+    function hasRequiredCourseFields(data) {
+      return data.keys().hasAll(['userId', 'name', 'status', 'createdAt', 'updatedAt']);
+    }
+
+    function hasValidCourseData(data) {
+      return hasOnlyAllowedCourseFields(data)
+        && hasRequiredCourseFields(data)
+        && data.userId is string
+        && data.userId.size() > 0
+        && data.name is string
+        && data.name.size() > 0
+        && data.name.size() <= 120
+        && data.status in ['active', 'archived', 'completed']
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp
+        && isOptionalString(data, 'code', 40)
+        && (!data.keys().hasAny(['credits'])
+            || data.credits == null
+            || data.credits is int
+            || data.credits is float)
+        && isOptionalString(data, 'instructor', 120)
+        && isOptionalString(data, 'semester', 60)
+        && isOptionalString(data, 'color', 20);
+    }
+
+    function hasOnlyAllowedScheduleFields(data) {
+      return data.keys().hasOnly([
+        'userId',
+        'title',
+        'type',
+        'status',
+        'startAt',
+        'endAt',
+        'location',
+        'courseId',
+        'notes',
+        'reminderMinutes',
+        'createdAt',
+        'updatedAt',
+      ]);
+    }
+
+    function hasRequiredScheduleFields(data) {
+      return data.keys().hasAll([
+        'userId',
+        'title',
+        'type',
+        'status',
+        'startAt',
+        'endAt',
+        'createdAt',
+        'updatedAt',
+      ]);
+    }
+
+    function hasValidScheduleData(data) {
+      return hasOnlyAllowedScheduleFields(data)
+        && hasRequiredScheduleFields(data)
+        && data.userId is string
+        && data.userId.size() > 0
+        && data.title is string
+        && data.title.size() > 0
+        && data.title.size() <= 140
+        && data.type in ['class', 'exam', 'lab', 'meeting', 'assignment', 'personal']
+        && data.status in ['planned', 'completed', 'cancelled']
+        && isIsoDateTime(data.startAt)
+        && isIsoDateTime(data.endAt)
+        && data.endAt >= data.startAt
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp
+        && isOptionalString(data, 'location', 120)
+        && isOptionalString(data, 'courseId', 80)
+        && isOptionalString(data, 'notes', 1200)
+        && (!data.keys().hasAny(['reminderMinutes'])
+            || data.reminderMinutes == null
+            || (data.reminderMinutes is int && data.reminderMinutes >= 0));
+    }
+
+    function hasOnlyAllowedGroupFields(data) {
+      return data.keys().hasOnly([
+        'ownerId',
+        'name',
+        'subject',
+        'status',
+        'memberIds',
+        'meetingLink',
+        'cadence',
+        'nextMeetingAt',
+        'notes',
+        'createdAt',
+        'updatedAt',
+      ]);
+    }
+
+    function hasRequiredGroupFields(data) {
+      return data.keys().hasAll([
+        'ownerId',
+        'name',
+        'subject',
+        'status',
+        'memberIds',
+        'createdAt',
+        'updatedAt',
+      ]);
+    }
+
+    function hasValidGroupData(data) {
+      return hasOnlyAllowedGroupFields(data)
+        && hasRequiredGroupFields(data)
+        && data.ownerId is string
+        && data.ownerId.size() > 0
+        && data.name is string
+        && data.name.size() > 0
+        && data.name.size() <= 120
+        && data.subject is string
+        && data.subject.size() > 0
+        && data.subject.size() <= 120
+        && data.status in ['active', 'archived']
+        && data.memberIds is list
+        && data.memberIds.size() > 0
+        && data.ownerId in data.memberIds
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp
+        && isOptionalString(data, 'meetingLink', 300)
+        && isOptionalString(data, 'cadence', 80)
+        && (!data.keys().hasAny(['nextMeetingAt'])
+            || data.nextMeetingAt == null
+            || isIsoDateTime(data.nextMeetingAt))
+        && isOptionalString(data, 'notes', 1200);
+    }
+
+    function hasOnlyAllowedUserProfileFields(data) {
+      return data.keys().hasOnly([
+        'userId',
+        'displayName',
+        'avatarUrl',
+        'academicRole',
+        'timezone',
+        'emailVisibility',
+        'publicStudyCard',
+        'profileSharingEnabled',
+        'createdAt',
+        'updatedAt',
+      ]);
+    }
+
+    function hasRequiredUserProfileFields(data) {
+      return data.keys().hasAll([
+        'userId',
+        'displayName',
+        'academicRole',
+        'timezone',
+        'emailVisibility',
+        'publicStudyCard',
+        'profileSharingEnabled',
+        'createdAt',
+        'updatedAt',
+      ]);
+    }
+
+    function hasValidUserProfileData(data) {
+      return hasOnlyAllowedUserProfileFields(data)
+        && hasRequiredUserProfileFields(data)
+        && data.userId is string
+        && data.userId.size() > 0
+        && data.displayName is string
+        && data.displayName.size() > 0
+        && data.displayName.size() <= 80
+        && isOptionalString(data, 'avatarUrl', 500)
+        && data.academicRole in ['student', 'mentor', 'instructor', 'other']
+        && data.timezone is string
+        && data.timezone.size() > 0
+        && data.timezone.size() <= 64
+        && data.emailVisibility in ['private', 'contacts', 'public']
+        && data.publicStudyCard is bool
+        && data.profileSharingEnabled is bool
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function hasOnlyAllowedUserPreferencesFields(data) {
+      return data.keys().hasOnly([
+        'userId',
+        'dashboardDensity',
+        'defaultTaskPriority',
+        'defaultReminderMinutes',
+        'weekStartDay',
+        'dateFormat',
+        'quietHoursEnabled',
+        'quietHoursStart',
+        'quietHoursEnd',
+        'createdAt',
+        'updatedAt',
+      ]);
+    }
+
+    function hasRequiredUserPreferencesFields(data) {
+      return data.keys().hasAll([
+        'userId',
+        'dashboardDensity',
+        'defaultTaskPriority',
+        'defaultReminderMinutes',
+        'weekStartDay',
+        'dateFormat',
+        'quietHoursEnabled',
+        'quietHoursStart',
+        'quietHoursEnd',
+        'createdAt',
+        'updatedAt',
+      ]);
+    }
+
+    function hasValidUserPreferencesData(data) {
+      return hasOnlyAllowedUserPreferencesFields(data)
+        && hasRequiredUserPreferencesFields(data)
+        && data.userId is string
+        && data.userId.size() > 0
+        && data.dashboardDensity in ['comfortable', 'compact']
+        && data.defaultTaskPriority in ['low', 'medium', 'high']
+        && data.defaultReminderMinutes is int
+        && data.defaultReminderMinutes >= 0
+        && data.weekStartDay in ['monday', 'sunday']
+        && data.dateFormat in ['yyyy-mm-dd', 'dd-mm-yyyy', 'mm-dd-yyyy']
+        && data.quietHoursEnabled is bool
+        && isTime24h(data.quietHoursStart)
+        && isTime24h(data.quietHoursEnd)
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isCourseOwner() {
+      return isSignedIn() && resource.data.userId == request.auth.uid;
+    }
+
+    function isScheduleOwner() {
+      return isSignedIn() && resource.data.userId == request.auth.uid;
+    }
+
+    function isStudyGroupOwner() {
+      return isSignedIn() && resource.data.ownerId == request.auth.uid;
+    }
+
+    function isStudyGroupMember() {
+      return isSignedIn() && request.auth.uid in resource.data.memberIds;
+    }
+
+    match /tasks/{taskId} {
+      allow read: if isTaskOwner();
+
+      allow create: if isSignedIn()
+        && request.resource.data.userId == request.auth.uid
+        && hasValidTaskData(request.resource.data);
+
+      allow update: if isTaskOwner()
+        && request.resource.data.userId == resource.data.userId
+        && request.resource.data.createdAt == resource.data.createdAt
+        && hasValidTaskData(request.resource.data);
+
+      allow delete: if isTaskOwner();
+    }
+
+    match /courses/{courseId} {
+      allow read: if isCourseOwner();
+
+      allow create: if isSignedIn()
+        && request.resource.data.userId == request.auth.uid
+        && hasValidCourseData(request.resource.data);
+
+      allow update: if isCourseOwner()
+        && request.resource.data.userId == resource.data.userId
+        && request.resource.data.createdAt == resource.data.createdAt
+        && hasValidCourseData(request.resource.data);
+
+      allow delete: if isCourseOwner();
+    }
+
+    match /scheduleEvents/{eventId} {
+      allow read: if isScheduleOwner();
+
+      allow create: if isSignedIn()
+        && request.resource.data.userId == request.auth.uid
+        && hasValidScheduleData(request.resource.data);
+
+      allow update: if isScheduleOwner()
+        && request.resource.data.userId == resource.data.userId
+        && request.resource.data.createdAt == resource.data.createdAt
+        && hasValidScheduleData(request.resource.data);
+
+      allow delete: if isScheduleOwner();
+    }
+
+    match /studyGroups/{groupId} {
+      allow read: if isStudyGroupMember();
+
+      allow create: if isSignedIn()
+        && request.resource.data.ownerId == request.auth.uid
+        && request.auth.uid in request.resource.data.memberIds
+        && hasValidGroupData(request.resource.data);
+
+      allow update: if isStudyGroupOwner()
+        && request.resource.data.ownerId == resource.data.ownerId
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.auth.uid in request.resource.data.memberIds
+        && hasValidGroupData(request.resource.data);
+
+      allow delete: if isStudyGroupOwner();
+    }
+
+    match /userProfiles/{userId} {
+      allow read: if isSignedIn() && userId == request.auth.uid;
+
+      allow create: if isSignedIn()
+        && userId == request.auth.uid
+        && request.resource.data.userId == request.auth.uid
+        && hasValidUserProfileData(request.resource.data);
+
+      allow update: if isSignedIn()
+        && userId == request.auth.uid
+        && resource.data.userId == request.auth.uid
+        && request.resource.data.userId == resource.data.userId
+        && request.resource.data.createdAt == resource.data.createdAt
+        && hasValidUserProfileData(request.resource.data);
+
+      allow delete: if isSignedIn() && userId == request.auth.uid;
+    }
+
+    match /userPreferences/{userId} {
+      allow read: if isSignedIn() && userId == request.auth.uid;
+
+      allow create: if isSignedIn()
+        && userId == request.auth.uid
+        && request.resource.data.userId == request.auth.uid
+        && hasValidUserPreferencesData(request.resource.data);
+
+      allow update: if isSignedIn()
+        && userId == request.auth.uid
+        && resource.data.userId == request.auth.uid
+        && request.resource.data.userId == resource.data.userId
+        && request.resource.data.createdAt == resource.data.createdAt
+        && hasValidUserPreferencesData(request.resource.data);
+
+      allow delete: if isSignedIn() && userId == request.auth.uid;
+    }
+  }
+}
