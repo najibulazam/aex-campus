@@ -21,6 +21,7 @@ import {
   isOneOf,
   isIsoDateTime,
 } from "@/lib/validators";
+import { normalizeOptionalHttpUrl } from "@/lib/urlValidation";
 import {
   STUDY_GROUP_STATUSES,
   type StudyGroup,
@@ -69,23 +70,6 @@ function normalizeOptionalString(value: unknown, maxLength: number): string | un
   if (!normalized) return undefined;
   if (!isNonEmptyString(normalized, maxLength)) return undefined;
   return normalized;
-}
-
-function normalizeOptionalHttpUrl(value: unknown, maxLength: number): string | undefined {
-  const normalized = normalizeTrimmedString(value);
-  if (!normalized) return undefined;
-  if (!isNonEmptyString(normalized, maxLength)) return undefined;
-
-  try {
-    const parsed = new URL(normalized);
-    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
-      return undefined;
-    }
-
-    return parsed.toString();
-  } catch {
-    return undefined;
-  }
 }
 
 function normalizeMemberIds(memberIds: unknown, ownerId: string): string[] {

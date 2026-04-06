@@ -124,6 +124,9 @@ Open http://localhost:3000
 - npm run build: production build
 - npm run start: run production server
 - npm run lint: ESLint checks
+- npm run test: run unit tests (Vitest)
+- npm run test:watch: run unit tests in watch mode
+- npm run test:e2e: run Playwright smoke tests
 
 ## Firestore Deployment
 
@@ -150,8 +153,23 @@ Run before shipping changes:
 
 ```bash
 npm run lint
+npm run test
 npm run build
 ```
+
+## E2E Smoke Test Setup
+
+Playwright smoke tests cover settings fallback routing and unsaved-change guards.
+
+Set credentials in your terminal session before running:
+
+```bash
+$env:E2E_EMAIL="your_test_user@example.com"
+$env:E2E_PASSWORD="your_test_password"
+npm run test:e2e
+```
+
+If you already have a running app instance, set `PLAYWRIGHT_BASE_URL` to reuse it.
 
 ## Project Structure (High Level)
 

@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { AlertTriangle, Pencil, Trash2 } from "lucide-react";
 import { useGroups } from "@/lib/useGroups";
+import { isValidHttpUrl } from "@/lib/urlValidation";
 import type { StudyGroup, StudyGroupStatus } from "@/types/studyGroup";
 
 type DraftGroup = {
@@ -27,18 +28,14 @@ const NOTICE_DEFAULT_MS = 4500;
 const NOTICE_UNDO_MS = 9000;
 
 function validateMeetingLink(meetingLink: string): string | null {
-  if (!meetingLink.trim()) return null;
+  const normalized = meetingLink.trim();
+  if (!normalized) return null;
 
-  try {
-    // URL constructor provides robust URL validation.
-    const parsed = new URL(meetingLink);
-    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
-      return "Meeting link must use http or https.";
-    }
-    return null;
-  } catch {
+  if (!isValidHttpUrl(normalized)) {
     return "Meeting link must be a valid URL.";
   }
+
+  return null;
 }
 
 function toLocalDateTimeInput(isoString: string): string {

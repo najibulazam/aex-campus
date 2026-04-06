@@ -4,6 +4,7 @@ import { useState } from "react";
 import Navbar from "@/components/Navbar";
 import RequireAuth from "@/components/RequireAuth";
 import { useAuth } from "@/context/AuthContext";
+import { DashboardDataProvider } from "@/context/DashboardDataContext";
 import {
   LayoutDashboard,
   BookOpen,
@@ -35,35 +36,37 @@ export default function DashboardLayout({
 
   return (
     <RequireAuth>
-      <div className="min-h-screen w-full relative lg:flex lg:items-start lg:justify-start">
-        <button
-          type="button"
-          aria-label="close sidebar"
-          onClick={closeSidebar}
-          className={`fixed inset-0 z-40 bg-[rgba(14,19,22,0.72)] backdrop-blur-[1px] transition-opacity duration-200 lg:hidden ${
-            isSidebarOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
-          }`}
-        />
-
-        <aside
-          className={`neo-sidebar fixed top-0 bottom-0 left-0 z-50 w-72 transition-transform duration-200 ${
-            isSidebarOpen ? "translate-x-0" : "-translate-x-full"
-          } lg:translate-x-0`}
-        >
-          <SidebarContent
-            pathname={pathname}
-            onNavigate={closeSidebar}
-            userEmail={user?.email ?? null}
+      <DashboardDataProvider>
+        <div className="min-h-screen w-full relative lg:flex lg:items-start lg:justify-start">
+          <button
+            type="button"
+            aria-label="close sidebar"
+            onClick={closeSidebar}
+            className={`fixed inset-0 z-40 bg-[rgba(14,19,22,0.72)] backdrop-blur-[1px] transition-opacity duration-200 lg:hidden ${
+              isSidebarOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+            }`}
           />
-        </aside>
 
-        <div className="min-h-screen w-full flex flex-col justify-start lg:ml-72">
-          <Navbar onMenuClick={toggleSidebar} />
-          <main className="w-full flex-1 overflow-x-hidden overflow-y-auto">
-            {children}
-          </main>
+          <aside
+            className={`neo-sidebar fixed top-0 bottom-0 left-0 z-50 w-72 transition-transform duration-200 ${
+              isSidebarOpen ? "translate-x-0" : "-translate-x-full"
+            } lg:translate-x-0`}
+          >
+            <SidebarContent
+              pathname={pathname}
+              onNavigate={closeSidebar}
+              userEmail={user?.email ?? null}
+            />
+          </aside>
+
+          <div className="min-h-screen w-full flex flex-col justify-start lg:ml-72">
+            <Navbar onMenuClick={toggleSidebar} />
+            <main className="w-full flex-1 overflow-x-hidden overflow-y-auto">
+              {children}
+            </main>
+          </div>
         </div>
-      </div>
+      </DashboardDataProvider>
     </RequireAuth>
   );
 }

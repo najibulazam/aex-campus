@@ -1,37 +1,16 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
-import { addTask, deleteTask, subscribeTasks, toggleTask } from "@/lib/taskService";
-import type { FilterType, Priority, Task } from "@/types/task";
+import { useDashboardData } from "@/context/DashboardDataContext";
+import { addTask, deleteTask, toggleTask } from "@/lib/taskService";
+import type { FilterType, Priority } from "@/types/task";
 
 export function useTasks() {
   const { user } = useAuth();
+  const { tasks, tasksLoading, tasksError } = useDashboardData();
 
-  const [tasks, setTasks] = useState<Task[]>([]);
   const [filter, setFilter] = useState<FilterType>("all");
-  const [tasksLoading, setTasksLoading] = useState(true);
-  const [firestoreError, setFirestoreError] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!user) return;
-
-    const unsubscribe = subscribeTasks(
-      user.uid,
-      (fetchedTasks) => {
-        setTasks(fetchedTasks);
-        setTasksLoading(false);
-        setFirestoreError(null);
-      },
-      (error) => {
-        console.error("[useTasks] Firestore listener error:", error);
-        setFirestoreError("Could not connect to the database. Please check your Firebase config.");
-        setTasksLoading(false);
-      }
-    );
-
-    return () => unsubscribe();
-  }, [user]);
 
   const handleAddTask = useCallback(
     async (title: string, priority?: Priority, dueDate?: string, time?: string | null) => {
@@ -103,7 +82,7 @@ export function useTasks() {
     taskCounts,
     productivityScore,
     tasksLoading,
-    firestoreError,
+    firestoreError: tasksError,
     handleAddTask,
     handleToggleTask,
     handleDeleteTask,

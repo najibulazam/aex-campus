@@ -13,6 +13,7 @@ import {
   isOneOf,
   normalizeTrimmedString,
 } from "@/lib/validators";
+import { normalizeOptionalHttpUrl } from "@/lib/urlValidation";
 import {
   ACADEMIC_ROLES,
   EMAIL_VISIBILITY_LEVELS,
@@ -45,16 +46,7 @@ function parseTimestampish(raw: unknown): string | undefined {
 }
 
 function normalizeAvatarUrl(raw: unknown): string | undefined {
-  const value = normalizeTrimmedString(raw);
-  if (!value) return undefined;
-
-  try {
-    const url = new URL(value);
-    if (url.protocol !== "http:" && url.protocol !== "https:") return undefined;
-    return url.toString();
-  } catch {
-    return undefined;
-  }
+  return normalizeOptionalHttpUrl(raw, 500);
 }
 
 function parseUserProfileDoc(data: DocumentData, userId: string): UserProfile | null {

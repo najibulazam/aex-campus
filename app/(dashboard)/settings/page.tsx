@@ -5,6 +5,13 @@ import { AlertTriangle } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { usePreferences } from "@/lib/usePreferences";
 import { useProfile } from "@/lib/useProfile";
+import {
+  SETTINGS_TABS,
+  isSettingsTab,
+  resolveSettingsTab,
+  type SettingsTab,
+} from "@/lib/settingsTabs";
+import { isValidHttpUrl } from "@/lib/urlValidation";
 import { isTime24h } from "@/lib/validators";
 import {
   ACADEMIC_ROLES,
@@ -19,8 +26,6 @@ import {
 } from "@/types/userPreferences";
 import { PRIORITIES } from "@/types/task";
 
-type SettingsTab = "profile" | "preferences" | "notifications";
-
 type ActionNotice = {
   type: "success" | "error";
   text: string;
@@ -32,25 +37,10 @@ type NotificationFieldErrors = Partial<
   Record<"defaultReminderMinutes" | "quietHoursStart" | "quietHoursEnd", string>
 >;
 
-const SETTINGS_TABS: SettingsTab[] = ["profile", "preferences", "notifications"];
-
-function isSettingsTab(value: string | null): value is SettingsTab {
-  return value === "profile" || value === "preferences" || value === "notifications";
-}
-
 function labelForTab(tab: SettingsTab): string {
   if (tab === "profile") return "Profile";
   if (tab === "notifications") return "Notifications";
   return "Preferences";
-}
-
-function isValidHttpUrl(value: string): boolean {
-  try {
-    const url = new URL(value);
-    return url.protocol === "http:" || url.protocol === "https:";
-  } catch {
-    return false;
-  }
 }
 
 function validateProfile(values: {
@@ -153,7 +143,7 @@ export default function SettingsPage() {
   const [notificationDraft, setNotificationDraft] = useState<UserPreferencesInput>({});
 
   const requestedTab = searchParams.get("tab");
-  const activeTab: SettingsTab = isSettingsTab(requestedTab) ? requestedTab : "preferences";
+  const activeTab = resolveSettingsTab(requestedTab);
 
   useEffect(() => {
     if (isSettingsTab(requestedTab)) {

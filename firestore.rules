@@ -28,6 +28,20 @@ service cloud.firestore {
             && data[key].size() <= maxLength);
     }
 
+    function isHttpUrl(value) {
+      return value is string
+        && value.matches('^(http|https)://[^ ]+$');
+    }
+
+    function isOptionalHttpUrl(data, key, maxLength) {
+      return !data.keys().hasAny([key])
+        || data[key] == null
+        || (data[key] is string
+            && data[key].size() > 0
+            && data[key].size() <= maxLength
+            && isHttpUrl(data[key]));
+    }
+
     function hasOnlyAllowedTaskFields(data) {
       return data.keys().hasOnly([
         'userId',
@@ -219,7 +233,7 @@ service cloud.firestore {
         && data.ownerId in data.memberIds
         && data.createdAt is timestamp
         && data.updatedAt is timestamp
-        && isOptionalString(data, 'meetingLink', 300)
+        && isOptionalHttpUrl(data, 'meetingLink', 300)
         && isOptionalString(data, 'cadence', 80)
         && (!data.keys().hasAny(['nextMeetingAt'])
             || data.nextMeetingAt == null
@@ -264,7 +278,7 @@ service cloud.firestore {
         && data.displayName is string
         && data.displayName.size() > 0
         && data.displayName.size() <= 80
-        && isOptionalString(data, 'avatarUrl', 500)
+        && isOptionalHttpUrl(data, 'avatarUrl', 500)
         && data.academicRole in ['student', 'mentor', 'instructor', 'other']
         && data.timezone is string
         && data.timezone.size() > 0

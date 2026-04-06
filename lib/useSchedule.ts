@@ -1,15 +1,14 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
+import { useDashboardData } from "@/context/DashboardDataContext";
 import {
   addScheduleEvent,
   deleteScheduleEvent,
-  subscribeScheduleEvents,
   updateScheduleEvent,
 } from "@/lib/scheduleService";
 import type {
-  ScheduleEvent,
   ScheduleEventInput,
   ScheduleEventStatus,
 } from "@/types/scheduleEvent";
@@ -46,33 +45,11 @@ function isInWeek(date: Date): boolean {
 
 export function useSchedule() {
   const { user } = useAuth();
+  const { events, eventsLoading, eventsError } = useDashboardData();
 
-  const [events, setEvents] = useState<ScheduleEvent[]>([]);
-  const [eventsLoading, setEventsLoading] = useState(true);
-  const [eventsError, setEventsError] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<ScheduleStatusFilter>("all");
   const [rangeFilter, setRangeFilter] = useState<ScheduleRangeFilter>("week");
   const [searchQuery, setSearchQuery] = useState("");
-
-  useEffect(() => {
-    if (!user) return;
-
-    const unsubscribe = subscribeScheduleEvents(
-      user.uid,
-      (fetchedEvents) => {
-        setEvents(fetchedEvents);
-        setEventsLoading(false);
-        setEventsError(null);
-      },
-      (error) => {
-        console.error("[useSchedule] Firestore listener error:", error);
-        setEventsError("Could not load schedule events. Please check your Firebase configuration.");
-        setEventsLoading(false);
-      }
-    );
-
-    return () => unsubscribe();
-  }, [user]);
 
   const handleAddEvent = useCallback(
     async (input: Omit<ScheduleEventInput, "userId">) => {

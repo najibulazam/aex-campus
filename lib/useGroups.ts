@@ -1,15 +1,14 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
+import { useDashboardData } from "@/context/DashboardDataContext";
 import {
   addStudyGroup,
   deleteStudyGroup,
-  subscribeGroups,
   updateStudyGroup,
 } from "@/lib/groupService";
 import type {
-  StudyGroup,
   StudyGroupInput,
   StudyGroupStatus,
 } from "@/types/studyGroup";
@@ -27,32 +26,10 @@ function getMutationErrorMessage(error: unknown, fallback: string): string {
 
 export function useGroups() {
   const { user } = useAuth();
+  const { groups, groupsLoading, groupsError } = useDashboardData();
 
-  const [groups, setGroups] = useState<StudyGroup[]>([]);
-  const [groupsLoading, setGroupsLoading] = useState(true);
-  const [groupsError, setGroupsError] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<GroupStatusFilter>("all");
   const [searchQuery, setSearchQuery] = useState("");
-
-  useEffect(() => {
-    if (!user) return;
-
-    const unsubscribe = subscribeGroups(
-      user.uid,
-      (fetchedGroups) => {
-        setGroups(fetchedGroups);
-        setGroupsLoading(false);
-        setGroupsError(null);
-      },
-      (error) => {
-        console.error("[useGroups] Firestore listener error:", error);
-        setGroupsError("Could not load study groups. Please check your Firebase configuration.");
-        setGroupsLoading(false);
-      }
-    );
-
-    return () => unsubscribe();
-  }, [user]);
 
   const handleAddGroup = useCallback(
     async (input: Omit<StudyGroupInput, "ownerId">) => {

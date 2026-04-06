@@ -2,9 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
-import { subscribeGroups } from "@/lib/groupService";
-import { subscribeScheduleEvents } from "@/lib/scheduleService";
-import { subscribeTasks } from "@/lib/taskService";
+import { useDashboardData } from "@/context/DashboardDataContext";
 import type { ScheduleEvent } from "@/types/scheduleEvent";
 import type { StudyGroup } from "@/types/studyGroup";
 import type { Task } from "@/types/task";
@@ -144,10 +142,7 @@ function getUpcomingGroupMeetingNotifications(
 
 export function useNavbarNotifications() {
   const { user } = useAuth();
-
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [events, setEvents] = useState<ScheduleEvent[]>([]);
-  const [groups, setGroups] = useState<StudyGroup[]>([]);
+  const { tasks, events, groups } = useDashboardData();
   const [clockMs, setClockMs] = useState<number>(() => new Date().getTime());
 
   useEffect(() => {
@@ -159,30 +154,6 @@ export function useNavbarNotifications() {
       window.clearInterval(interval);
     };
   }, []);
-
-  useEffect(() => {
-    if (!user) return;
-
-    return subscribeTasks(user.uid, setTasks, (error) => {
-      console.error("[useNavbarNotifications] task listener error:", error);
-    });
-  }, [user]);
-
-  useEffect(() => {
-    if (!user) return;
-
-    return subscribeScheduleEvents(user.uid, setEvents, (error) => {
-      console.error("[useNavbarNotifications] schedule listener error:", error);
-    });
-  }, [user]);
-
-  useEffect(() => {
-    if (!user) return;
-
-    return subscribeGroups(user.uid, setGroups, (error) => {
-      console.error("[useNavbarNotifications] groups listener error:", error);
-    });
-  }, [user]);
 
   const notifications = useMemo(() => {
     if (!user) {
